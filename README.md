@@ -14,7 +14,7 @@
 | **Live Dashboard** | **DevSecOps Pipeline** |
 |:---:|:---:|
 | ![Dashboard](screenshots/dashboard.png) | ![Pipeline](screenshots/pipeline.png) |
-| *Real-time CPU/Memory monitoring* | *Trivy Security Scan Blocking Vulnerabilities* |
+| *Real-time CPU/Memory monitoring* | *Pipeline succeeds and outputs the IP to dash* |
 
 ---
 
