@@ -1,0 +1,60 @@
+# 🛡️ CloudSentinel: Secure Container Observability Platform
+
+![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)
+![Terraform](https://img.shields.io/badge/terraform-%235835CC.svg?style=for-the-badge&logo=terraform&logoColor=white)
+![Docker](https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white)
+![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
+![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=white)
+
+**CloudSentinel** is a cloud-native monitoring application deployed on **AWS ECS Fargate**. It demonstrates a fully automated **DevSecOps** pipeline, featuring Infrastructure as Code (IaC), automated vulnerability scanning, and zero-downtime deployments.
+
+---
+
+## 📸 Screenshots
+| **Live Dashboard** | **DevSecOps Pipeline** |
+|:---:|:---:|
+| ![Dashboard](screenshots/dashboard.png) | ![Pipeline](screenshots/pipeline.png) |
+| *Real-time CPU/Memory monitoring* | *Trivy Security Scan Blocking Vulnerabilities* |
+
+---
+
+## 🏗️ Architecture
+**Infrastructure:**
+* **Compute:** AWS ECS (Fargate) for serverless container orchestration.
+* **Registry:** AWS ECR for secure image storage with Lifecycle Policies.
+* **Networking:** VPC, Security Groups, and IAM Roles tailored for Least Privilege.
+* **IaC:** 100% of infrastructure provisioned via **Terraform**.
+
+**CI/CD Pipeline (GitHub Actions):**
+1.  **Build:** Docker image creation with optimized layers.
+2.  **Secure:** **Trivy** vulnerability scanner checks image for CVEs (High/Critical).
+    * *Pipeline fails automatically if security risks are detected.*
+3.  **Deploy:** Pushes to ECR and forces a rolling update on ECS Fargate.
+4.  **Verify:** Stability check (`aws ecs wait`) ensures the app is healthy before success.
+
+---
+
+## 🚀 Key Features
+* **Rootless Security:** Container runs as a non-root user to mitigate privilege escalation attacks.
+* **Automated Security Gates:** Integrated **Trivy** to scan dependencies (e.g., Python `wheel`, `jaraco`) before deployment.
+* **Self-Healing Infrastructure:** ECS automatically restarts failed tasks.
+* **Infrastructure as Code:** Replicable environments using Terraform.
+
+---
+
+## 🛠️ Getting Started
+### Prerequisites
+* AWS CLI & Terraform installed.
+* Docker Desktop running.
+
+### Local Installation
+```bash
+# Clone the repo
+git clone [https://github.com/YOUR_USERNAME/cloud-sentinel.git](https://github.com/YOUR_USERNAME/cloud-sentinel.git)
+
+# Build locally
+cd app
+docker build -t cloud-sentinel .
+
+# Run container
+docker run -p 5000:5000 cloud-sentinel
