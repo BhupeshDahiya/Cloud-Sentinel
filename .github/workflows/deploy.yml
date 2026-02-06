@@ -36,4 +36,4 @@ jobs:
 
     - name: Force ECS Deployment
       run: |
-        aws ecs update-service --cluster zero-to-cloud-cluster --service zero-to-cloud-service --force-new-deployment
+        aws ecs update-service --cluster cloud-sentinel-cluster --service cloud-sentinel-service --force-new-deployment
