@@ -27,7 +27,7 @@ jobs:
       id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: zero-to-cloud-repo # Must match Terraform name
+        ECR_REPOSITORY: cloud-sentinel-repo # Must match Terraform name
         IMAGE_TAG: latest
       run: |
         cd app
