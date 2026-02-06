@@ -1,25 +1,21 @@
-import socket
-import platform
 import psutil
+import socket
 from flask import Flask, render_template
-import os
 
 app = Flask(__name__)
 
-@app.route('/')
-def home():
-    # Gather System Info
-    system_info = {
-        "hostname": socket.gethostname(),
-        "ip_address": socket.gethostbyname(socket.gethostname()),
-        "os_platform": platform.system(),
-        "os_release": platform.release(),
-        "cpu_count": psutil.cpu_count(),
-        "memory_total": f"{round(psutil.virtual_memory().total / (1024.0 **3))} GB",
-        "python_version": platform.python_version()
-    }
+@app.route("/")
+def index():
+    # 1. Calculate the numbers
+    cpu_metric = psutil.cpu_percent()
+    mem_metric = psutil.virtual_memory().percent
+    hostname = socket.gethostname()
     
-    return render_template('index.html', info=system_info)
+    # 2. Send them to the HTML (This was the missing link!)
+    return render_template("index.html", 
+                         cpu_metric=cpu_metric, 
+                         mem_metric=mem_metric, 
+                         hostname=hostname)
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    app.run(debug=True, host='0.0.0.0', port=5000)
