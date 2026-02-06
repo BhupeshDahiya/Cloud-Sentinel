@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
+      uses: aws-actions/configure-aws-credentials@v4
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -21,19 +21,61 @@ jobs:
 
     - name: Login to Amazon ECR
       id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
+      uses: aws-actions/amazon-ecr-login@v2
 
-    - name: Build, tag, and push image to Amazon ECR
-      id: build-image
+    # 1. Build the image locally (don't push yet) (Here by locally i mean on the github actions runner)
+    - name: Build Docker Image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: cloud-sentinel-repo # Must match Terraform name
+        ECR_REPOSITORY: cloud-sentinel-repo
         IMAGE_TAG: latest
       run: |
-        cd app
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG app/
+
+    # 2. Scan the LOCAL image
+    - name: Run Trivy Vulnerability Scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        # We must reconstruct the full name to match what we just built
+        image-ref: ${{ steps.login-ecr.outputs.registry }}/cloud-sentinel-repo:latest
+        format: 'table'
+        exit-code: '1'
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'
+
+    # 3. If Scan passes, then Push to AWS
+    - name: Push to ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: cloud-sentinel-repo
+        IMAGE_TAG: latest
+      run: |
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
     - name: Force ECS Deployment
       run: |
         aws ecs update-service --cluster cloud-sentinel-cluster --service cloud-sentinel-service --force-new-deployment
+    
+    # wait for the deployment to finish and the task to be RUNNING, then get the public IP of the new task and print the dashboard URL
+    - name: Get Public IP
+      run: |
+        echo "⏳ Waiting for the new task to start (this takes ~1-2 mins)..."
+        # 1. Wait for the deployment to finish and the task to be RUNNING
+        aws ecs wait services-stable --cluster cloud-sentinel-cluster --services cloud-sentinel-service
+
+        echo "✅ Service is stable. Fetching IP..."
+
+        # 2. Get the ARN of the running task
+        TASK_ARN=$(aws ecs list-tasks --cluster cloud-sentinel-cluster --service-name cloud-sentinel-service --query "taskArns[0]" --output text)
+
+        # 3. Get the Network Interface ID (ENI) attached to that task
+        ENI_ID=$(aws ecs describe-tasks --cluster cloud-sentinel-cluster --tasks $TASK_ARN --query "tasks[0].attachments[0].details[?name=='networkInterfaceId'].value" --output text)
+
+        # 4. Get the Public IP from the ENI
+        PUBLIC_IP=$(aws ec2 describe-network-interfaces --network-interface-ids $ENI_ID --query "NetworkInterfaces[0].Association.PublicIp" --output text)
+
+        echo "========================================================="
+        echo "🚀 APPLICATION DEPLOYED SUCCESSFULLY"
+        echo "🌍 Access your dashboard here: http://$PUBLIC_IP:5000"
+        echo "========================================================="
