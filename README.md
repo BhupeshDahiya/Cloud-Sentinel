@@ -69,3 +69,7 @@ docker build -t cloud-sentinel .
 
 # Run container
 docker run -p 5000:5000 cloud-sentinel
+```
+
+Optional - The ECR repo name is hard coded so if you want to change it change it in depoly.yml and ecr.tf
+Selfnote - Actions is currently disabled for this repo
