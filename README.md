@@ -14,7 +14,7 @@
 | **Live Dashboard** | **DevSecOps Pipeline** |
 |:---:|:---:|
 | ![Dashboard](screenshots/dashboard.png) | ![Pipeline](screenshots/pipeline.png) |
-| *Real-time CPU/Memory metrics with Dark Mode UI* | *Trivy Security Scan with Risk Acceptance Policy* |
+| *Real-time CPU/Memory metrics with Dark Mode UI* | *Pipeline succeeding and outputting the IP for dash* |
 
 ---
 
@@ -28,7 +28,7 @@
 **CI/CD Pipeline (GitHub Actions):**
 1.  **Build:** Docker image creation with optimized layers (Python 3.12-slim).
 2.  **Secure:** **Trivy** vulnerability scanner checks image for CVEs (High/Critical).
-    * *Includes `.trivyignore` implementation for documented risk acceptance of base-image CVEs.*
+    * *Pipeline fails automatically if critical security risks are detected.*
 3.  **Deploy:** Pushes to ECR and forces a rolling update on ECS Fargate.
 4.  **Verify:** Stability check (`aws ecs wait`) ensures the app is healthy before success.
 
@@ -69,5 +69,3 @@ docker build -t cloud-sentinel .
 
 # Run container
 docker run -p 5000:5000 cloud-sentinel
-```
-Optional step - the name for ECR repo is hardcoded here, so if you want some other name then edit ecr.tf and deploy.yml
