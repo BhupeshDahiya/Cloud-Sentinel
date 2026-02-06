@@ -6,7 +6,7 @@
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 ![GitHub Actions](https://img.shields.io/badge/github%20actions-%232671E5.svg?style=for-the-badge&logo=githubactions&logoColor=white)
 
-**CloudSentinel** is a cloud-native monitoring application deployed on **AWS ECS Fargate**. It demonstrates a fully automated **DevSecOps** pipeline, featuring Infrastructure as Code (IaC), automated vulnerability scanning, and zero-downtime deployments.
+**CloudSentinel** is a cloud-native monitoring application deployed on **AWS ECS Fargate**. It demonstrates a fully automated **DevSecOps** pipeline, featuring Infrastructure as Code (IaC), automated vulnerability scanning (Trivy), and real-time system observability.
 
 ---
 
@@ -14,7 +14,7 @@
 | **Live Dashboard** | **DevSecOps Pipeline** |
 |:---:|:---:|
 | ![Dashboard](screenshots/dashboard.png) | ![Pipeline](screenshots/pipeline.png) |
-| *Real-time CPU/Memory monitoring* | *Pipeline succeeds and outputs the IP to dash* |
+| *Real-time CPU/Memory metrics with Dark Mode UI* | *Trivy Security Scan with Risk Acceptance Policy* |
 
 ---
 
@@ -26,23 +26,34 @@
 * **IaC:** 100% of infrastructure provisioned via **Terraform**.
 
 **CI/CD Pipeline (GitHub Actions):**
-1.  **Build:** Docker image creation with optimized layers.
+1.  **Build:** Docker image creation with optimized layers (Python 3.12-slim).
 2.  **Secure:** **Trivy** vulnerability scanner checks image for CVEs (High/Critical).
-    * *Pipeline fails automatically if security risks are detected.*
+    * *Includes `.trivyignore` implementation for documented risk acceptance of base-image CVEs.*
 3.  **Deploy:** Pushes to ECR and forces a rolling update on ECS Fargate.
 4.  **Verify:** Stability check (`aws ecs wait`) ensures the app is healthy before success.
 
 ---
 
 ## 🚀 Key Features
+* **Real-Time Observability:** Custom Python/Flask backend using `psutil` to stream live CPU and Memory usage to a Tailwind CSS dashboard.
 * **Rootless Security:** Container runs as a non-root user to mitigate privilege escalation attacks.
-* **Automated Security Gates:** Integrated **Trivy** to scan dependencies (e.g., Python `wheel`, `jaraco`) before deployment.
-* **Self-Healing Infrastructure:** ECS automatically restarts failed tasks.
-* **Infrastructure as Code:** Replicable environments using Terraform.
+* **Self-Healing Infrastructure:** ECS Fargate automatically replaces unhealthy tasks.
+* **Automated & Scalable:** Infrastructure defined entirely in Terraform for reproducibility.
 
 ---
 
-## 🛠️ Getting Started
+## 🛠️ Usage
+
+### View the Dashboard
+Navigate to the Load Balancer/Public IP URL to see the system status.
+* **Auto-Refresh:** Updates every 5 seconds.
+* **Metrics:** Shows Container ID (Hostname), CPU Load, and Memory Usage.
+* **Visuals:** Features a live "System Operational" pulse and dynamic progress bars.
+
+---
+
+## 💻 Getting Started
+
 ### Prerequisites
 * AWS CLI & Terraform installed.
 * Docker Desktop running.
@@ -58,3 +69,5 @@ docker build -t cloud-sentinel .
 
 # Run container
 docker run -p 5000:5000 cloud-sentinel
+```
+Optional step - the name for ECR repo is hardcoded here, so if you want some other name then edit ecr.tf and deploy.yml
