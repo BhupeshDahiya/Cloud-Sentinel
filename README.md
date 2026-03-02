@@ -61,7 +61,7 @@ Navigate to the Load Balancer/Public IP URL to see the system status.
 ### Local Installation
 ```bash
 # Clone the repo
-git clone [https://github.com/YOUR_USERNAME/cloud-sentinel.git](https://github.com/YOUR_USERNAME/cloud-sentinel.git)
+git clone https://github.com/BhupeshDahiya/cloud-sentinel.git
 
 # Build locally
 cd app
